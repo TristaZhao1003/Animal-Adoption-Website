@@ -18,7 +18,7 @@ public class DataInitializer {
                 Animal a1 = new Animal();
                 a1.setName("Bella");
                 a1.setType("dog");
-                a1.setBreed("Golden Retriever");
+                a1.setBreed("Golden Retriever");m
                 a1.setAge("2 years");
                 a1.setGender("Female");
                 a1.setLocation("Hong Kong Island");
