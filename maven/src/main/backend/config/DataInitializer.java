@@ -24,7 +24,7 @@ public class DataInitializer {
                 a1.setLocation("Hong Kong Island");
                 a1.setNeutered(true);
                 a1.setStatus("AVAILABLE");
-                a1.setImage("https://images.unsplash.com/photo-1552053831-71594a27632d");
+                a1.setImage("https://images.unsplash.com/photo-1543852786-1cf6624b9987?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80");
                 a1.setPersonality(List.of("Friendly", "Playful"));
 
                 Animal a2 = new Animal();
@@ -36,7 +36,7 @@ public class DataInitializer {
                 a2.setLocation("Kowloon");
                 a2.setNeutered(true);
                 a2.setStatus("AVAILABLE");
-                a2.setImage("https://images.unsplash.com/photo-1514888286974-6d03bdeacba8");
+                a2.setImage("https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80");
                 a2.setPersonality(List.of("Calm", "Affectionate"));
 
                 repository.saveAll(List.of(a1, a2));
