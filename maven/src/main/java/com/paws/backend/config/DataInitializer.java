@@ -121,8 +121,8 @@ public class DataInitializer {
                 a7.setSize("tiny");
                 a7.setLocation("HongKong");
                 a7.setNeutered(true);
-                a7.setStatus("UNAVAILABLE");
-                a7.setImage("https://zh.wikipedia.org/wiki/File:Full_attention_(8067543690).jpg");
+                a7.setStatus("AVAILABLE");
+                a7.setImage("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Full_attention_%288067543690%29.jpg/500px-Full_attention_%288067543690%29.jpg");
                 a7.setStory("good boy");
 
                 a7.setPersonality(List.of("aggressive", "naughty", "tiny but bossy", "XiaoBiGa"));
