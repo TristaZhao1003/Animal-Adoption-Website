@@ -896,3 +896,24 @@ footer {
         padding: 25px;
     }
 }
+
+/* Adoption Detail Edit */
+.edit {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.edit:hover{
+    background: var(--light-color);
+}
