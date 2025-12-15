@@ -897,29 +897,8 @@ footer {
     }
 }
 
-/* Simple fix for animal detail title */
-.animal-detail-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.animal-detail-title > div:first-child {
-    flex: 1;
-}
-
-.animal-detail-title h2 {
-    margin: 0;
-}
-
-.animal-detail-title p {
-    margin: 5px 0 0 0;
-    color: #666;
-}
-
 /* Adoption Detail Edit */
-.edit {
+.edit-btn {
     background-color: var(--accent-color);
     color: white;
     border: none;
@@ -935,6 +914,6 @@ footer {
     margin-left: auto;
 }
 
-.edit:hover{
+.edit-btn:hover{
     background: var(--light-color);
 }
