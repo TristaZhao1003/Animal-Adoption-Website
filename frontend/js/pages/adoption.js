@@ -1,4 +1,4 @@
-// adoption.js - Version using ApiService to connect to the database
+// adoption.js - Fixed version with Auth logic and Toast feedback
 
 // DOM Elements
 const animalsGrid = document.getElementById('animalsGrid');
@@ -19,6 +19,18 @@ const animalDetailBody = document.getElementById('animalDetailBody');
 const prevPageBtn = document.getElementById('prevPageBtn');
 const nextPageBtn = document.getElementById('nextPageBtn');
 const pageNumbers = document.getElementById('pageNumbers');
+
+// Auth Elements
+const loginBtn = document.getElementById('loginBtn');
+const registerBtn = document.getElementById('registerBtn');
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const loginModal = document.getElementById('loginModal');
+const registerModal = document.getElementById('registerModal');
+const closeLoginModal = document.getElementById('closeLoginModal');
+const closeRegisterModal = document.getElementById('closeRegisterModal');
+const switchToRegister = document.getElementById('switchToRegister');
+const switchToLogin = document.getElementById('switchToLogin');
 
 // Filter elements
 const animalTypeFilter = document.getElementById('animalType');
@@ -46,6 +58,8 @@ let currentFilters = {
     personality: '',
     search: ''
 };
+let currentUser = null;
+let authToken = null;
 
 // Initialize page
 async function initPage() {
@@ -55,13 +69,16 @@ async function initPage() {
             animalsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">Loading animals...</div>';
         }
 
-        // 1. Fetch data from backend
+        // 1. Check Auth Status
+        checkAuthStatus();
+
+        // 2. Fetch data from backend
         await fetchAnimals();
 
-        // 2. Initialize filters
+        // 3. Initialize filters
         filteredAnimals = [...animals];
 
-        // 3. Render page
+        // 4. Render page
         renderAnimals();
         updateStats();
         setupEventListeners();
@@ -71,6 +88,136 @@ async function initPage() {
         if (animalsGrid) {
             animalsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: red;">Failed to load data. Please check backend connection.</div>';
         }
+    }
+}
+
+// Check user authentication status
+function checkAuthStatus() {
+    const token = localStorage.getItem('authToken');
+    const userStr = localStorage.getItem('userData'); // home.js uses 'userData' or parses from response
+
+    if (token && userStr) {
+        authToken = token;
+        try {
+            currentUser = JSON.parse(userStr);
+            updateAuthButtons();
+        } catch (e) {
+            console.error("Error parsing user data", e);
+            logout(); // Clear invalid data
+        }
+    }
+}
+
+// Update Header Buttons (Login/Register <-> User/Logout)
+function updateAuthButtons() {
+    if (currentUser) {
+        if(loginBtn) {
+            loginBtn.textContent = currentUser.fullName || currentUser.name || 'My Account';
+            loginBtn.innerHTML = `<i class="fas fa-user"></i> ${currentUser.fullName || currentUser.name || 'Account'}`;
+            // Remove old listeners to prevent modal opening
+            const newLoginBtn = loginBtn.cloneNode(true);
+            loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
+            // Optional: Click to go to profile or nothing
+        }
+
+        if(registerBtn) {
+            registerBtn.textContent = 'Logout';
+            registerBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i> Logout`;
+            // Replace button to remove open modal listener and add logout listener
+            const newRegisterBtn = registerBtn.cloneNode(true);
+            registerBtn.parentNode.replaceChild(newRegisterBtn, registerBtn);
+            newRegisterBtn.addEventListener('click', logout);
+        }
+    } else {
+        // Reset to default state if logged out (reload page usually easiest, or manually reset)
+        if(loginBtn) {
+            loginBtn.innerHTML = 'Log in';
+            loginBtn.addEventListener('click', () => loginModal.classList.add('active'));
+        }
+        if(registerBtn) {
+            registerBtn.innerHTML = 'Sign up';
+            // Re-attach modal listener is tricky without reloading,
+            // but handleLogout reloads or we can use location.reload()
+        }
+    }
+}
+
+// Handle Login
+async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const btn = loginForm.querySelector('button[type="submit"]');
+
+    try {
+        showButtonLoading(btn);
+        const result = await ApiService.login({ email, password });
+
+        // Save auth data
+        localStorage.setItem('authToken', result.token);
+        localStorage.setItem('userData', JSON.stringify(result.user));
+
+        authToken = result.token;
+        currentUser = result.user;
+
+        showToast('Login successful!', 'success');
+        loginModal.classList.remove('active');
+        loginForm.reset();
+
+        // Update UI
+        updateAuthButtons();
+
+    } catch (error) {
+        console.error('Login error:', error);
+        showToast(error.message || 'Login failed', 'error');
+    } finally {
+        hideButtonLoading(btn);
+    }
+}
+
+// Handle Register
+async function handleRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById('registerName').value;
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const phone = document.getElementById('registerPhone').value;
+    const btn = registerForm.querySelector('button[type="submit"]');
+
+    try {
+        showButtonLoading(btn);
+        await ApiService.register({ name, email, password, phone });
+
+        showToast('Registration successful! Logging you in...', 'success');
+
+        // Auto login after register
+        const result = await ApiService.login({ email, password });
+        localStorage.setItem('authToken', result.token);
+        localStorage.setItem('userData', JSON.stringify(result.user));
+        authToken = result.token;
+        currentUser = result.user;
+
+        registerModal.classList.remove('active');
+        registerForm.reset();
+        updateAuthButtons();
+
+    } catch (error) {
+        console.error('Registration error:', error);
+        showToast(error.message || 'Registration failed', 'error');
+    } finally {
+        hideButtonLoading(btn);
+    }
+}
+
+// Handle Logout
+function logout() {
+    if(confirm("Are you sure you want to logout?")) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        currentUser = null;
+        authToken = null;
+        showToast('Logged out successfully', 'success');
+        setTimeout(() => window.location.reload(), 1000); // Reload to reset UI cleanly
     }
 }
 
@@ -103,7 +250,8 @@ async function fetchAnimals() {
         });
     } catch (error) {
         console.error('Error fetching animals:', error);
-        animals = []; // Reset on error
+        animals = [];
+        showToast('Failed to load animals from server.', 'error');
     }
 }
 
@@ -346,7 +494,7 @@ function resetFilters() {
 
 // Show animal details modal
 function showAnimalDetails(animalId) {
-    // Critical Change: Direct comparison of IDs, removed parseInt because MongoDB ID is a string
+    // Direct comparison of IDs, removed parseInt because MongoDB ID is a string
     const animal = animals.find(a => a.id === animalId);
 
     if (!animal) return;
@@ -359,7 +507,6 @@ function showAnimalDetails(animalId) {
                 <h2>${animal.name}</h2>
                 <p>${animal.breed} • ${animal.age} • ${animal.gender === 'male' ? 'Male' : 'Female'}</p>
             </div>
-            <span class="edit-btn"> Edit </span>
         </div>
         
         <div class="detail-row">
@@ -415,19 +562,17 @@ function showAnimalDetails(animalId) {
 
 // Start adoption process
 function startAdoptionProcess(animalId) {
-    const isLoggedIn = ApiService.isAuthenticated(); // Use ApiService to check login status
-
-    if (!isLoggedIn) {
-        alert('Please login or register to start the adoption process.');
+    if (!currentUser) {
+        showToast('Please login or register to start the adoption process.', 'warning');
         animalDetailModal.classList.remove('active');
         setTimeout(() => {
-            document.getElementById('loginBtn').click();
+            loginModal.classList.add('active');
         }, 300);
         return;
     }
 
     // Add real adoption application API call here
-    alert(`Starting adoption process for animal ID: ${animalId}`);
+    showToast(`Adoption request for animal ID: ${animalId} started!`, 'success');
 }
 
 // Share animal
@@ -441,7 +586,7 @@ function shareAnimal(animal) {
     } else {
         const shareText = `Check out ${animal.name}, a ${animal.age} ${animal.breed} available for adoption!`;
         navigator.clipboard.writeText(shareText).then(() => {
-            alert('Link copied to clipboard!');
+            showToast('Link copied to clipboard!', 'success');
         });
     }
 }
@@ -507,7 +652,6 @@ function setupEventListeners() {
 
     // Delegate events for animal cards (since they're dynamically created)
     document.addEventListener('click', (e) => {
-        // Important: Removed parseInt as IDs are strings
         if (e.target.closest('.view-detail-btn')) {
             const animalId = e.target.closest('.view-detail-btn').getAttribute('data-id');
             showAnimalDetails(animalId);
@@ -519,18 +663,14 @@ function setupEventListeners() {
         }
     });
 
-    // Auth Modal Handlers (Simplified or reused logic)
-    const loginBtn = document.getElementById('loginBtn');
-    const registerBtn = document.getElementById('registerBtn');
-    const closeLoginModal = document.getElementById('closeLoginModal');
-    const closeRegisterModal = document.getElementById('closeRegisterModal');
-    const loginModal = document.getElementById('loginModal');
-    const registerModal = document.getElementById('registerModal');
-    const switchToRegister = document.getElementById('switchToRegister');
-    const switchToLogin = document.getElementById('switchToLogin');
+    // Auth Event Listeners (FIXED)
+    if (loginForm) loginForm.addEventListener('submit', handleLogin);
+    if (registerForm) registerForm.addEventListener('submit', handleRegister);
 
+    // Modal Toggles
     if (loginBtn) loginBtn.addEventListener('click', () => loginModal.classList.add('active'));
-    if (registerBtn) registerBtn.addEventListener('click', () => registerModal.classList.add('active'));
+    if (registerBtn && !currentUser) registerBtn.addEventListener('click', () => registerModal.classList.add('active'));
+
     if (closeLoginModal) closeLoginModal.addEventListener('click', () => loginModal.classList.remove('active'));
     if (closeRegisterModal) closeRegisterModal.addEventListener('click', () => registerModal.classList.remove('active'));
 
@@ -555,6 +695,46 @@ function setupEventListeners() {
         if (e.target === loginModal) loginModal.classList.remove('active');
         if (e.target === registerModal) registerModal.classList.remove('active');
     });
+}
+
+// UI Helper: Show Button Loading
+function showButtonLoading(button) {
+    if (!button) return;
+    button.dataset.originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    button.disabled = true;
+}
+
+// UI Helper: Hide Button Loading
+function hideButtonLoading(button) {
+    if (!button || !button.dataset.originalText) return;
+    button.innerHTML = button.dataset.originalText;
+    button.disabled = false;
+    delete button.dataset.originalText;
+}
+
+// UI Helper: Show Toast
+function showToast(message, type = 'info') {
+    // Remove existing
+    document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    // Simple styling if CSS missing
+    toast.style.cssText = `
+        position: fixed; top: 20px; right: 20px; 
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+        color: white; padding: 15px 20px; border-radius: 5px; z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.3s ease;
+    `;
+
+    toast.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> 
+        <span style="margin-left: 10px">${message}</span>
+    `;
+
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
 }
 
 // Initialize page on load
