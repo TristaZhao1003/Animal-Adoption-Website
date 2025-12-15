@@ -424,7 +424,7 @@ function showAnimalDetails(animalId) {
                 <h2>${animal.name}</h2>
                 <p>${animal.breed} • ${animal.age} • ${animal.gender === 'male' ? 'Male' : 'Female'}</p>
             </div>
-            <span class="status status-available">Available for Adoption</span>
+            <span class="edit">Edit</span>
         </div>
         
         <div class="detail-row">
