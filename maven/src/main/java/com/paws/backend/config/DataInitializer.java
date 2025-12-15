@@ -1,10 +1,13 @@
 package com.paws.backend.config;
 
 import com.paws.backend.model.Animal;
+import com.paws.backend.model.User;
 import com.paws.backend.repository.AnimalRepository;
+import com.paws.backend.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -12,9 +15,12 @@ import java.util.List;
 public class DataInitializer {
 
     @Bean
-    CommandLineRunner initDatabase(AnimalRepository repository) {
+    CommandLineRunner initDatabase(AnimalRepository animalRepository,
+                                   UserRepository userRepository,
+                                   PasswordEncoder passwordEncoder) {
         return args -> {
-            if (repository.count() == 0) {
+            // 1. 初始化动物数据
+            if (animalRepository.count() == 0) {
                 // 1. Buddy
                 Animal a1 = new Animal();
                 a1.setName("Buddy");
@@ -105,8 +111,32 @@ public class DataInitializer {
                 a6.setStory("Oliver is a gentle giant. He's a large Maine Coon with a heart to match. He's very friendly but also enjoys his quiet time.");
                 a6.setPersonality(List.of("gentle", "friendly", "quiet", "large"));
 
-                repository.saveAll(List.of(a1, a2, a3, a4, a5, a6));
-                System.out.println("Initialized full animal dataset into MongoDB");
+                animalRepository.saveAll(List.of(a1, a2, a3, a4, a5, a6));
+                System.out.println("Initialized animal data");
+            }
+
+            // 2. user data initialize
+            if (userRepository.count() == 0) {
+                // user
+                User user = new User();
+                user.setFullName("Test User");
+                user.setEmail("user@example.com");
+                user.setPassword(passwordEncoder.encode("password123"));
+                user.setPhone("12345678");
+                user.setRole("USER");
+
+                // admin/vonlunteer
+                User admin = new User();
+                admin.setFullName("Admin User");
+                admin.setEmail("admin@example.com");
+                admin.setPassword(passwordEncoder.encode("admin123"));
+                admin.setPhone("87654321");
+                admin.setRole("ADMIN");
+                admin.setVolunteer(true);
+                admin.setVolunteerRole("Manager");
+
+                userRepository.saveAll(List.of(user, admin));
+                System.out.println("Initialized user data");
             }
         };
     }
