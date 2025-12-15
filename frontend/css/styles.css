@@ -898,7 +898,7 @@ footer {
 }
 
 /* Adoption Detail Edit */
-.edit {
+.edit-btn {
     background-color: var(--accent-color);
     color: white;
     border: none;
@@ -914,6 +914,6 @@ footer {
     margin-left: auto;
 }
 
-.edit:hover{
+.edit-btn:hover{
     background: var(--light-color);
 }
