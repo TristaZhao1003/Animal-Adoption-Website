@@ -359,6 +359,7 @@ function showAnimalDetails(animalId) {
                 <h2>${animal.name}</h2>
                 <p>${animal.breed} • ${animal.age} • ${animal.gender === 'male' ? 'Male' : 'Female'}</p>
             </div>
+            <span class="edit-btn"> Edit </span>
         </div>
         
         <div class="detail-row">
