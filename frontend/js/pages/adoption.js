@@ -1,126 +1,4 @@
-// Animal Data - Only available animals
-const animals = [
-    {
-        id: 1,
-        name: "Buddy",
-        type: "dog",
-        breed: "Mixed Breed",
-        age: "2 years",
-        ageCategory: "young",
-        gender: "male",
-        size: "medium",
-        location: "Beijing",
-        personality: ["friendly", "active", "playful", "loyal"],
-        personalityTags: ["Friendly", "Active", "Playful"],
-        status: "available",
-        image: "https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-        neutered: true,
-        story: "Buddy was found on a rainy day, shivering in a cardboard box. After our care, he has recovered and become a lively, friendly companion. He loves interacting with people and would be great for families with children."
-    },
-    
-    {
-        id: 3,
-        name: "Shadow",
-        type: "cat",
-        breed: "Siamese",
-        age: "6 months",
-        ageCategory: "puppy",
-        gender: "male",
-        size: "small",
-        location: "Shenzhen",
-        personality: ["curious", "active", "playful", "smart"],
-        personalityTags: ["Curious", "Active", "Playful"],
-        status: "available",
-        image: "https://images.unsplash.com/photo-1543852786-1cf6624b9987?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-        neutered: false,
-        story: "Shadow was found in a parking lot when he was very small. He's extremely curious and interested in everything around him. He loves playing with various toys and would suit a family with time to interact with him."
-    },
-    {
-        id: 4,
-        name: "Fluffy",
-        type: "cat",
-        breed: "Persian",
-        age: "5 years",
-        ageCategory: "adult",
-        gender: "female",
-        size: "small",
-        location: "Hangzhou",
-        personality: ["elegant", "calm", "gentle", "requires grooming"],
-        personalityTags: ["Elegant", "Calm", "Gentle"],
-        status: "available",
-        image: "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-        neutered: true,
-        story: "Fluffy's previous owner had to give her up due to cat allergies. She is a very elegant Persian cat with a gentle, calm personality. She needs regular grooming and would be best for families with cat experience."
-    },
-    {
-        id: 5,
-        name: "Charlie",
-        type: "dog",
-        breed: "Golden Retriever",
-        age: "3 years",
-        ageCategory: "adult",
-        gender: "male",
-        size: "large",
-        location: "Chengdu",
-        personality: ["friendly", "patient", "good with kids", "intelligent"],
-        personalityTags: ["Friendly", "Patient", "Good with Kids"],
-        status: "available",
-        image: "https://images.unsplash.com/photo-1568572933382-74d440642117?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-        neutered: true,
-        story: "Charlie was surrendered when his family moved overseas. He's incredibly friendly and great with children. He knows basic commands and loves playing fetch. He would make a wonderful family pet."
-    },
-    {
-        id: 6,
-        name: "Luna",
-        type: "dog",
-        breed: "Husky",
-        age: "2 years",
-        ageCategory: "young",
-        gender: "female",
-        size: "large",
-        location: "Beijing",
-        personality: ["energetic", "playful", "vocal", "needs exercise"],
-        personalityTags: ["Energetic", "Playful", "Vocal"],
-        status: "available",
-        image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-        neutered: true,
-        story: "Luna was found as a stray. She's full of energy and loves to play. She would be perfect for an active family who can provide her with plenty of exercise and attention."
-    },
-    {
-        id: 7,
-        name: "Oliver",
-        type: "cat",
-        breed: "Maine Coon",
-        age: "4 years",
-        ageCategory: "adult",
-        gender: "male",
-        size: "large",
-        location: "Guangzhou",
-        personality: ["gentle", "friendly", "quiet", "large"],
-        personalityTags: ["Gentle", "Friendly", "Quiet"],
-        status: "available",
-        image: "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-        neutered: true,
-        story: "Oliver is a gentle giant. He's a large Maine Coon with a heart to match. He's very friendly but also enjoys his quiet time. He gets along well with other cats."
-    },
-    {
-        id: 8,
-        name: "Rocky",
-        type: "dog",
-        breed: "Beagle",
-        age: "1 year",
-        ageCategory: "young",
-        gender: "male",
-        size: "medium",
-        location: "Shanghai",
-        personality: ["curious", "friendly", "energetic", "scent-driven"],
-        personalityTags: ["Curious", "Friendly", "Energetic"],
-        status: "available",
-        image: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-        neutered: true,
-        story: "Rocky was rescued from a neglectful situation. He's made amazing progress and is now a happy, curious beagle. He loves following scents and going for walks."
-    }
-];
+// adoption.js - Version using ApiService to connect to the database
 
 // DOM Elements
 const animalsGrid = document.getElementById('animalsGrid');
@@ -153,6 +31,7 @@ const neuteredFilter = document.getElementById('neutered');
 const personalityFilter = document.getElementById('personality');
 
 // State
+let animals = []; // Data will be loaded from API
 let filteredAnimals = [];
 let currentPage = 1;
 const animalsPerPage = 6;
@@ -169,42 +48,130 @@ let currentFilters = {
 };
 
 // Initialize page
-function initPage() {
-    // Initially show all available animals
-    filteredAnimals = [...animals];
-    
-    // Render animals
-    renderAnimals();
-    updateStats();
-    setupEventListeners();
+async function initPage() {
+    try {
+        // Show loading state
+        if (animalsGrid) {
+            animalsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">Loading animals...</div>';
+        }
+
+        // 1. Fetch data from backend
+        await fetchAnimals();
+
+        // 2. Initialize filters
+        filteredAnimals = [...animals];
+
+        // 3. Render page
+        renderAnimals();
+        updateStats();
+        setupEventListeners();
+
+    } catch (error) {
+        console.error("Failed to init adoption page:", error);
+        if (animalsGrid) {
+            animalsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: red;">Failed to load data. Please check backend connection.</div>';
+        }
+    }
+}
+
+// Fetch and process animal data from API
+async function fetchAnimals() {
+    try {
+        // Call ApiService to get backend data
+        const rawAnimals = await ApiService.getAvailableAnimals();
+
+        // Map backend data to frontend format
+        animals = rawAnimals.map(animal => {
+            const age = animal.age || 'Unknown';
+            return {
+                id: animal.id, // Keep string ID (MongoDB ObjectId)
+                name: animal.name,
+                type: formatAnimalType(animal.type),
+                breed: animal.breed || 'Mixed',
+                age: age,
+                ageCategory: calculateAgeCategory(age), // Calculate age category for filtering
+                gender: formatGender(animal.gender),
+                size: (animal.size || 'medium').toLowerCase(),
+                location: animal.location || 'Unknown',
+                personality: animal.personality || [],
+                personalityTags: (animal.personality || []).map(p => p.charAt(0).toUpperCase() + p.slice(1)),
+                status: animal.status,
+                image: animal.image || getDefaultAnimalImage(animal.type),
+                neutered: animal.neutered,
+                story: animal.story || 'No story available.'
+            };
+        });
+    } catch (error) {
+        console.error('Error fetching animals:', error);
+        animals = []; // Reset on error
+    }
+}
+
+// Helper function: Calculate age category (for filtering)
+function calculateAgeCategory(ageStr) {
+    const str = ageStr.toLowerCase();
+    if (str.includes('month')) return 'puppy';
+
+    // Extract number
+    const match = str.match(/(\d+)/);
+    if (!match) return 'adult';
+
+    const years = parseInt(match[0]);
+    if (years <= 1) return 'puppy';
+    if (years <= 3) return 'young';
+    if (years <= 8) return 'adult';
+    return 'senior';
+}
+
+// Helper function: Format animal type
+function formatAnimalType(type) {
+    if (!type) return 'other';
+    const t = type.toLowerCase();
+    if (t.includes('dog')) return 'dog';
+    if (t.includes('cat')) return 'cat';
+    return 'other';
+}
+
+// Helper function: Format gender
+function formatGender(gender) {
+    if (!gender) return 'Unknown';
+    const g = gender.toLowerCase();
+    return (g === 'male' || g === 'm') ? 'male' : 'female';
+}
+
+// Helper function: Get default image
+function getDefaultAnimalImage(type) {
+    if (type === 'dog') return 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&q=80';
+    if (type === 'cat') return 'https://images.unsplash.com/photo-1514888286974-6d03bdeacba8?w=600&q=80';
+    return 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=600&q=80';
 }
 
 // Render animals based on current filters and pagination
 function renderAnimals() {
     animalsGrid.innerHTML = '';
-    
+
     if (filteredAnimals.length === 0) {
         animalsGrid.style.display = 'none';
         emptyState.style.display = 'block';
         pagination.style.display = 'none';
         return;
     }
-    
+
     animalsGrid.style.display = 'grid';
     emptyState.style.display = 'none';
-    
+
     // Calculate pagination
     const totalPages = Math.ceil(filteredAnimals.length / animalsPerPage);
     const startIndex = (currentPage - 1) * animalsPerPage;
     const endIndex = Math.min(startIndex + animalsPerPage, filteredAnimals.length);
     const pageAnimals = filteredAnimals.slice(startIndex, endIndex);
-    
+
     // Render animal cards
     pageAnimals.forEach(animal => {
         const animalCard = createAnimalCard(animal);
         animalsGrid.appendChild(animalCard);
     });
-    
+
     // Update pagination
     updatePagination(totalPages);
 }
@@ -214,7 +181,7 @@ function createAnimalCard(animal) {
     const animalCard = document.createElement('div');
     animalCard.className = 'animal-card';
     animalCard.innerHTML = `
-        <img src="${animal.image}" alt="${animal.name}" class="animal-img">
+        <img src="${animal.image}" alt="${animal.name}" class="animal-img" onerror="this.src='${getDefaultAnimalImage(animal.type)}'">
         <div class="animal-info">
             <h3>${animal.name}</h3>
             <div class="animal-meta">
@@ -247,21 +214,16 @@ function createAnimalCard(animal) {
             </div>
         </div>
     `;
-    
+
     return animalCard;
 }
 
 // Update statistics
 function updateStats() {
     totalAnimalsEl.textContent = filteredAnimals.length;
-    
-    const dogs = filteredAnimals.filter(a => a.type === 'dog').length;
-    const cats = filteredAnimals.filter(a => a.type === 'cat').length;
-    const others = filteredAnimals.filter(a => a.type !== 'dog' && a.type !== 'cat').length;
-    
-    dogsCountEl.textContent = dogs;
-    catsCountEl.textContent = cats;
-    otherCountEl.textContent = others;
+    dogsCountEl.textContent = filteredAnimals.filter(a => a.type === 'dog').length;
+    catsCountEl.textContent = filteredAnimals.filter(a => a.type === 'cat').length;
+    otherCountEl.textContent = filteredAnimals.filter(a => a.type !== 'dog' && a.type !== 'cat').length;
 }
 
 // Update pagination controls
@@ -270,28 +232,22 @@ function updatePagination(totalPages) {
         pagination.style.display = 'none';
         return;
     }
-    
+
     pagination.style.display = 'flex';
-    
-    // Update previous button
     prevPageBtn.disabled = currentPage === 1;
     prevPageBtn.classList.toggle('disabled', currentPage === 1);
-    
-    // Update next button
     nextPageBtn.disabled = currentPage === totalPages;
     nextPageBtn.classList.toggle('disabled', currentPage === totalPages);
-    
-    // Update page numbers
+
     pageNumbers.innerHTML = '';
-    
-    // Show up to 5 page buttons
+
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + 4);
-    
+
     if (endPage - startPage < 4) {
         startPage = Math.max(1, endPage - 4);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
         const pageBtn = document.createElement('button');
         pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
@@ -317,54 +273,39 @@ function applyFilters() {
         personality: personalityFilter.value,
         search: searchInput.value.toLowerCase()
     };
-    
+
     filteredAnimals = animals.filter(animal => {
         // Type filter
-        if (currentFilters.animalType && animal.type !== currentFilters.animalType) {
-            return false;
-        }
-        
-        // Breed filter (simplified)
+        if (currentFilters.animalType && animal.type !== currentFilters.animalType) return false;
+
+        // Breed filter
         if (currentFilters.breed) {
             const breedLower = animal.breed.toLowerCase();
-            if (currentFilters.breed === 'mixed' && !breedLower.includes('mixed') && !breedLower.includes('mutt')) {
-                return false;
-            }
+            if (currentFilters.breed === 'mixed' && !breedLower.includes('mixed')) return false;
+            // Note: More complex logic might be needed for specific breeds if backend data varies
         }
-        
+
         // Age filter
-        if (currentFilters.age && animal.ageCategory !== currentFilters.age) {
-            return false;
-        }
-        
+        if (currentFilters.age && animal.ageCategory !== currentFilters.age) return false;
+
         // Gender filter
-        if (currentFilters.gender && animal.gender !== currentFilters.gender) {
-            return false;
-        }
-        
+        if (currentFilters.gender && animal.gender !== currentFilters.gender) return false;
+
         // Size filter
-        if (currentFilters.size && animal.size !== currentFilters.size) {
-            return false;
-        }
-        
+        if (currentFilters.size && animal.size !== currentFilters.size) return false;
+
         // Location filter
-        if (currentFilters.location && animal.location.toLowerCase() !== currentFilters.location) {
-            return false;
-        }
-        
+        if (currentFilters.location && animal.location.toLowerCase() !== currentFilters.location) return false;
+
         // Neutered filter
         if (currentFilters.neutered) {
             const isNeutered = animal.neutered ? 'yes' : 'no';
-            if (isNeutered !== currentFilters.neutered) {
-                return false;
-            }
+            if (isNeutered !== currentFilters.neutered) return false;
         }
-        
+
         // Personality filter
-        if (currentFilters.personality && !animal.personality.includes(currentFilters.personality)) {
-            return false;
-        }
-        
+        if (currentFilters.personality && !animal.personality.includes(currentFilters.personality)) return false;
+
         // Search filter
         if (currentFilters.search) {
             const searchTerm = currentFilters.search;
@@ -376,19 +317,14 @@ function applyFilters() {
                 ${animal.personality.join(' ')}
                 ${animal.story}
             `.toLowerCase();
-            
-            if (!searchableText.includes(searchTerm)) {
-                return false;
-            }
+
+            if (!searchableText.includes(searchTerm)) return false;
         }
-        
+
         return true;
     });
-    
-    // Reset to first page
+
     currentPage = 1;
-    
-    // Update display
     renderAnimals();
     updateStats();
 }
@@ -404,27 +340,25 @@ function resetFilters() {
     neuteredFilter.value = '';
     personalityFilter.value = '';
     searchInput.value = '';
-    
+
     applyFilters();
 }
 
 // Show animal details modal
 function showAnimalDetails(animalId) {
+    // Critical Change: Direct comparison of IDs, removed parseInt because MongoDB ID is a string
     const animal = animals.find(a => a.id === animalId);
-    
+
     if (!animal) return;
-    
-    // Set header image
-    animalDetailHeader.innerHTML = `<img src="${animal.image}" alt="${animal.name}">`;
-    
-    // Set body content
+
+    animalDetailHeader.innerHTML = `<img src="${animal.image}" alt="${animal.name}" onerror="this.src='${getDefaultAnimalImage(animal.type)}'">`;
+
     animalDetailBody.innerHTML = `
         <div class="animal-detail-title">
             <div>
                 <h2>${animal.name}</h2>
                 <p>${animal.breed} • ${animal.age} • ${animal.gender === 'male' ? 'Male' : 'Female'}</p>
             </div>
-            <span class="edit">Edit</span>
         </div>
         
         <div class="detail-row">
@@ -449,10 +383,6 @@ function showAnimalDetails(animalId) {
                         ${animal.personalityTags.map(tag => `<span class="personality-tag">${tag}</span>`).join('')}
                     </div>
                 </div>
-                <div class="detail-group">
-                    <div class="detail-label">Good With</div>
-                    <div class="detail-value">Children, Other Pets, Families</div>
-                </div>
             </div>
         </div>
         
@@ -470,15 +400,13 @@ function showAnimalDetails(animalId) {
             </button>
         </div>
     `;
-    
-    // Show modal
+
     animalDetailModal.classList.add('active');
-    
-    // Add event listeners for modal buttons
+
     document.getElementById('adoptThisAnimal').addEventListener('click', () => {
         startAdoptionProcess(animal.id);
     });
-    
+
     document.getElementById('shareAnimal').addEventListener('click', () => {
         shareAnimal(animal);
     });
@@ -486,23 +414,19 @@ function showAnimalDetails(animalId) {
 
 // Start adoption process
 function startAdoptionProcess(animalId) {
-    // Check if user is logged in
-    const isLoggedIn = false; // This should come from your auth system
-    
+    const isLoggedIn = ApiService.isAuthenticated(); // Use ApiService to check login status
+
     if (!isLoggedIn) {
         alert('Please login or register to start the adoption process.');
         animalDetailModal.classList.remove('active');
-        
-        // Show login modal
         setTimeout(() => {
             document.getElementById('loginBtn').click();
         }, 300);
         return;
     }
-    
-    // If logged in, proceed with adoption
-    alert('Starting adoption process. This would redirect to an adoption application form in a real application.');
-    // window.location.href = `adoption-application.html?animalId=${animalId}`;
+
+    // Add real adoption application API call here
+    alert(`Starting adoption process for animal ID: ${animalId}`);
 }
 
 // Share animal
@@ -514,8 +438,7 @@ function shareAnimal(animal) {
             url: window.location.href
         });
     } else {
-        // Fallback: copy to clipboard
-        const shareText = `Check out ${animal.name}, a ${animal.age} ${animal.breed} available for adoption at Animal Adoption Center!`;
+        const shareText = `Check out ${animal.name}, a ${animal.age} ${animal.breed} available for adoption!`;
         navigator.clipboard.writeText(shareText).then(() => {
             alert('Link copied to clipboard!');
         });
@@ -529,69 +452,73 @@ function setupEventListeners() {
         animalTypeFilter, breedFilter, ageFilter, genderFilter,
         sizeFilter, locationFilter, neuteredFilter, personalityFilter
     ];
-    
+
     filterElements.forEach(filter => {
-        filter.addEventListener('change', applyFilters);
+        if(filter) filter.addEventListener('change', applyFilters);
     });
-    
+
     // Search button
-    searchBtn.addEventListener('click', applyFilters);
-    
+    if(searchBtn) searchBtn.addEventListener('click', applyFilters);
+
     // Search input enter key
-    searchInput.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') {
-            applyFilters();
-        }
-    });
-    
-    // Reset filters buttons
-    resetFiltersBtn.addEventListener('click', resetFilters);
-    resetEmptyBtn.addEventListener('click', resetFilters);
-    
+    if(searchInput) {
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') applyFilters();
+        });
+    }
+
+    // Reset buttons
+    if(resetFiltersBtn) resetFiltersBtn.addEventListener('click', resetFilters);
+    if(resetEmptyBtn) resetEmptyBtn.addEventListener('click', resetFilters);
+
     // Pagination buttons
-    prevPageBtn.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderAnimals();
-        }
-    });
-    
-    nextPageBtn.addEventListener('click', () => {
-        const totalPages = Math.ceil(filteredAnimals.length / animalsPerPage);
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderAnimals();
-        }
-    });
-    
-    // Animal detail modal close
-    closeAnimalModal.addEventListener('click', () => {
-        animalDetailModal.classList.remove('active');
-    });
-    
-    // Click outside modal to close
+    if(prevPageBtn) {
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderAnimals();
+            }
+        });
+    }
+
+    if(nextPageBtn) {
+        nextPageBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredAnimals.length / animalsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderAnimals();
+            }
+        });
+    }
+
+    // Modal events
+    if(closeAnimalModal) {
+        closeAnimalModal.addEventListener('click', () => {
+            animalDetailModal.classList.remove('active');
+        });
+    }
+
     window.addEventListener('click', (e) => {
         if (e.target === animalDetailModal) {
             animalDetailModal.classList.remove('active');
         }
     });
-    
+
     // Delegate events for animal cards (since they're dynamically created)
     document.addEventListener('click', (e) => {
-        // View detail button
+        // Important: Removed parseInt as IDs are strings
         if (e.target.closest('.view-detail-btn')) {
-            const animalId = parseInt(e.target.closest('.view-detail-btn').getAttribute('data-id'));
+            const animalId = e.target.closest('.view-detail-btn').getAttribute('data-id');
             showAnimalDetails(animalId);
         }
-        
-        // Adopt button on card
+
         if (e.target.closest('.adopt-btn')) {
-            const animalId = parseInt(e.target.closest('.adopt-btn').getAttribute('data-id'));
+            const animalId = e.target.closest('.adopt-btn').getAttribute('data-id');
             startAdoptionProcess(animalId);
         }
     });
-    
-    // Login/Register modal functionality (simplified)
+
+    // Auth Modal Handlers (Simplified or reused logic)
     const loginBtn = document.getElementById('loginBtn');
     const registerBtn = document.getElementById('registerBtn');
     const closeLoginModal = document.getElementById('closeLoginModal');
@@ -600,31 +527,12 @@ function setupEventListeners() {
     const registerModal = document.getElementById('registerModal');
     const switchToRegister = document.getElementById('switchToRegister');
     const switchToLogin = document.getElementById('switchToLogin');
-    
-    if (loginBtn) {
-        loginBtn.addEventListener('click', () => {
-            loginModal.classList.add('active');
-        });
-    }
-    
-    if (registerBtn) {
-        registerBtn.addEventListener('click', () => {
-            registerModal.classList.add('active');
-        });
-    }
-    
-    if (closeLoginModal) {
-        closeLoginModal.addEventListener('click', () => {
-            loginModal.classList.remove('active');
-        });
-    }
-    
-    if (closeRegisterModal) {
-        closeRegisterModal.addEventListener('click', () => {
-            registerModal.classList.remove('active');
-        });
-    }
-    
+
+    if (loginBtn) loginBtn.addEventListener('click', () => loginModal.classList.add('active'));
+    if (registerBtn) registerBtn.addEventListener('click', () => registerModal.classList.add('active'));
+    if (closeLoginModal) closeLoginModal.addEventListener('click', () => loginModal.classList.remove('active'));
+    if (closeRegisterModal) closeRegisterModal.addEventListener('click', () => registerModal.classList.remove('active'));
+
     if (switchToRegister) {
         switchToRegister.addEventListener('click', (e) => {
             e.preventDefault();
@@ -632,7 +540,7 @@ function setupEventListeners() {
             registerModal.classList.add('active');
         });
     }
-    
+
     if (switchToLogin) {
         switchToLogin.addEventListener('click', (e) => {
             e.preventDefault();
@@ -640,15 +548,11 @@ function setupEventListeners() {
             loginModal.classList.add('active');
         });
     }
-    
-    // Close modals when clicking outside
+
+    // Close auth modals when clicking outside
     window.addEventListener('click', (e) => {
-        if (e.target === loginModal) {
-            loginModal.classList.remove('active');
-        }
-        if (e.target === registerModal) {
-            registerModal.classList.remove('active');
-        }
+        if (e.target === loginModal) loginModal.classList.remove('active');
+        if (e.target === registerModal) registerModal.classList.remove('active');
     });
 }
 

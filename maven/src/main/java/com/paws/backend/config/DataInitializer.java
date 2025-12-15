@@ -111,7 +111,23 @@ public class DataInitializer {
                 a6.setStory("Oliver is a gentle giant. He's a large Maine Coon with a heart to match. He's very friendly but also enjoys his quiet time.");
                 a6.setPersonality(List.of("gentle", "friendly", "quiet", "large"));
 
-                animalRepository.saveAll(List.of(a1, a2, a3, a4, a5, a6));
+                // 7. Vivi
+                Animal a7 = new Animal();
+                a7.setName("Vivi");
+                a7.setType("dog");
+                a7.setBreed("teddy");
+                a7.setAge("10 years");
+                a7.setGender("Male");
+                a7.setSize("tiny");
+                a7.setLocation("HongKong");
+                a7.setNeutered(true);
+                a7.setStatus("UNAVAILABLE");
+                a7.setImage("https://zh.wikipedia.org/wiki/File:Full_attention_(8067543690).jpg");
+                a7.setStory("good boy");
+
+                a7.setPersonality(List.of("aggressive", "naughty", "tiny but bossy", "XiaoBiGa"));
+
+                animalRepository.saveAll(List.of(a1, a2, a3, a4, a5, a6,a7));
                 System.out.println("Initialized animal data");
             }
 
