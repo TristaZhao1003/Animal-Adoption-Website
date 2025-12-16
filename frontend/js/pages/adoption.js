@@ -663,7 +663,7 @@ function setupEventListeners() {
         }
     });
 
-    // Auth Event Listeners (FIXED)
+    //  Event Listeners
     if (loginForm) loginForm.addEventListener('submit', handleLogin);
     if (registerForm) registerForm.addEventListener('submit', handleRegister);
 
