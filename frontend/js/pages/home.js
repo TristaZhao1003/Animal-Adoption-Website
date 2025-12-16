@@ -42,9 +42,10 @@ let currentVolunteerRole = '';
 // 从后端获取动物数据（使用ApiService）
 async function fetchAnimals() {
     try {
-        const animals = await ApiService.getAvailableAnimals({ limit: 6 });
-        
-        return animals.map(animal => ({
+        const animals = await ApiService.getAvailableAnimals();
+        const limitedAnimals = animals.slice(0, 3);
+
+        return limitedAnimals.map(animal => ({
             ...animal,
             // 标准化字段名
             image: animal.imageUrl || animal.image || getDefaultAnimalImage(animal.type),
@@ -843,20 +844,13 @@ function showDonationModal() {
     donationModal.classList.add('active');
 }
 
-// 查看动物详情（使用ApiService）
+// 查看动物详情 - 跳转到 adoption.html 显示该动物详情
 async function viewAnimalDetails(animalId) {
     try {
-        const animal = await ApiService.getAnimalById(animalId);
-        
-        const statusConfig = getStatusConfig(animal.status);
-        if (!statusConfig.available) {
-            showToast(`${animal.name} is currently ${statusConfig.text.toLowerCase()} and cannot be adopted.`, 'warning');
-            return;
-        }
-        
-        // 跳转到动物详情页面
-        window.location.href = `animal-detail.html?id=${animalId}`;
-        
+        // 直接跳转到 adoption.html 并传递动物ID参数
+        // 使用URL参数方式，更可靠
+        window.location.href = `adoption.html?animal=${animalId}&from=home`;
+
     } catch (error) {
         console.error('Error viewing animal details:', error);
         showToast('Unable to view animal details. Please try again.', 'error');
