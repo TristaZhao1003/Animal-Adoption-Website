@@ -63,6 +63,64 @@ let currentEditingAnimal = null;
 let currentUser = null;
 let authToken = null;
 
+// Check user authentication status
+function checkAuthStatus() {
+    const token = localStorage.getItem('authToken');
+    const userStr = localStorage.getItem('userData');
+
+    if (token && userStr) {
+        authToken = token;
+        try {
+            currentUser = JSON.parse(userStr);
+            updateAuthButtons();
+        } catch (e) {
+            console.error("Error parsing user data", e);
+            // 清理无效数据
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+            currentUser = null;
+            authToken = null;
+            updateAuthButtons(); // 更新按钮状态
+        }
+    } else {
+        // 没有认证数据，确保状态正确
+        currentUser = null;
+        authToken = null;
+        updateAuthButtons();
+    }
+}
+
+// Update Header Buttons (Login/Register <-> User/Logout)
+function updateAuthButtons() {
+    if (currentUser) {
+        if(loginBtn) {
+            loginBtn.textContent = currentUser.fullName || currentUser.name || 'My Account';
+            loginBtn.innerHTML = `<i class="fas fa-user"></i> ${currentUser.fullName || currentUser.name || 'Account'}`;
+            // 移除旧的监听器，添加新的
+            loginBtn.onclick = () => {
+                window.location.href = 'my-account.html';
+            };
+        }
+
+        if(registerBtn) {
+            registerBtn.textContent = 'Logout';
+            registerBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i> Logout`;
+            registerBtn.onclick = logout;
+        }
+    } else {
+        // 未登录状态
+        if(loginBtn) {
+            loginBtn.innerHTML = 'Log in';
+            loginBtn.onclick = () => loginModal.classList.add('active');
+        }
+        if(registerBtn) {
+            registerBtn.innerHTML = 'Sign up';
+            registerBtn.onclick = () => registerModal.classList.add('active');
+        }
+    }
+}
+
+
 // Helper function: Get status configuration
 function getStatusConfig(status) {
     const statusUpper = (status || 'AVAILABLE').toUpperCase();
@@ -117,7 +175,7 @@ async function initPage() {
             animalsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">Loading animals...</div>';
         }
 
-        // 1. Check Auth Status
+        // 1. Check Auth Status - 这会更新 currentUser 和 authToken
         checkAuthStatus();
 
         // 2. Fetch data from backend
@@ -151,56 +209,19 @@ async function initPage() {
     }
 }
 
-// Check user authentication status
-function checkAuthStatus() {
-    const token = localStorage.getItem('authToken');
-    const userStr = localStorage.getItem('userData'); // home.js uses 'userData' or parses from response
+document.addEventListener('DOMContentLoaded', () => {
+    // 检查登录状态
+    checkAuthStatus();
 
-    if (token && userStr) {
-        authToken = token;
-        try {
-            currentUser = JSON.parse(userStr);
-            updateAuthButtons();
-        } catch (e) {
-            console.error("Error parsing user data", e);
-            logout(); // Clear invalid data
-        }
+    // 如果有 AuthService，使用它
+    if (typeof AuthService !== 'undefined' && AuthService.isAuthenticated()) {
+        currentUser = AuthService.getCurrentUser();
+        authToken = AuthService.getToken();
     }
-}
 
-// Update Header Buttons (Login/Register <-> User/Logout)
-function updateAuthButtons() {
-    if (currentUser) {
-        if(loginBtn) {
-            loginBtn.textContent = currentUser.fullName || currentUser.name || 'My Account';
-            loginBtn.innerHTML = `<i class="fas fa-user"></i> ${currentUser.fullName || currentUser.name || 'Account'}`;
-            // Remove old listeners to prevent modal opening
-            const newLoginBtn = loginBtn.cloneNode(true);
-            loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
-            // Optional: Click to go to profile or nothing
-        }
-
-        if(registerBtn) {
-            registerBtn.textContent = 'Logout';
-            registerBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i> Logout`;
-            // Replace button to remove open modal listener and add logout listener
-            const newRegisterBtn = registerBtn.cloneNode(true);
-            registerBtn.parentNode.replaceChild(newRegisterBtn, registerBtn);
-            newRegisterBtn.addEventListener('click', logout);
-        }
-    } else {
-        // Reset to default state if logged out (reload page usually easiest, or manually reset)
-        if(loginBtn) {
-            loginBtn.innerHTML = 'Log in';
-            loginBtn.addEventListener('click', () => loginModal.classList.add('active'));
-        }
-        if(registerBtn) {
-            registerBtn.innerHTML = 'Sign up';
-            // Re-attach modal listener is tricky without reloading,
-            // but handleLogout reloads or we can use location.reload()
-        }
-    }
-}
+    // 初始化页面
+    initPage();
+});
 
 // Handle Login
 async function handleLogin(e) {
@@ -213,28 +234,29 @@ async function handleLogin(e) {
         showButtonLoading(btn);
         const result = await ApiService.login({ email, password });
 
-        // Save auth data
+        // 保存认证信息
         localStorage.setItem('authToken', result.token);
         localStorage.setItem('userData', JSON.stringify(result.user));
 
+        // 更新本地状态
         authToken = result.token;
         currentUser = result.user;
 
-        showToast('Login successful!', 'success');
+        // 显示成功消息
+        showToast('Login successful! Welcome back!', 'success');
+
+        // 关闭登录模态框
         loginModal.classList.remove('active');
+
+        // 重置表单
         loginForm.reset();
 
-        // Update UI
+        // 更新UI
         updateAuthButtons();
-
-        setTimeout(() => {
-            window.location.reload(); // 刷新页面
-        }, 800); // 0.8秒延迟，让用户看到成功消息
-
 
     } catch (error) {
         console.error('Login error:', error);
-        showToast(error.message || 'Login failed', 'error');
+        showToast(`Login failed: ${error.message}`, 'error');
     } finally {
         hideButtonLoading(btn);
     }
@@ -255,20 +277,27 @@ async function handleRegister(e) {
 
         showToast('Registration successful! Logging you in...', 'success');
 
-        // Auto login after register
+        // 自动登录
         const result = await ApiService.login({ email, password });
         localStorage.setItem('authToken', result.token);
         localStorage.setItem('userData', JSON.stringify(result.user));
         authToken = result.token;
         currentUser = result.user;
 
+        // 关闭注册模态框
         registerModal.classList.remove('active');
+
+        // 重置表单
         registerForm.reset();
+
+        // 更新UI
         updateAuthButtons();
+
+        showToast('Login successful! Welcome!', 'success');
 
     } catch (error) {
         console.error('Registration error:', error);
-        showToast(error.message || 'Registration failed', 'error');
+        showToast(`Registration failed: ${error.message}`, 'error');
     } finally {
         hideButtonLoading(btn);
     }
@@ -276,13 +305,49 @@ async function handleRegister(e) {
 
 // Handle Logout
 function logout() {
-    if(confirm("Are you sure you want to logout?")) {
+    console.log('logout function called');
+
+    // 检查是否已经有登出在进行中
+    if (window.logoutInProgress) {
+        console.log('Logout already in progress, skipping');
+        return;
+    }
+
+    // 设置标志防止重复执行
+    window.logoutInProgress = true;
+
+    // 显示确认对话框
+    const confirmed = confirm("Are you sure you want to logout?");
+
+    if (!confirmed) {
+        window.logoutInProgress = false;
+        return;
+    }
+
+    try {
+        console.log('Processing logout...');
+
+        // 1. 清除本地存储
         localStorage.removeItem('authToken');
         localStorage.removeItem('userData');
+
+        // 2. 清除本地变量
         currentUser = null;
         authToken = null;
-        showToast('Logged out successfully', 'success');
-        setTimeout(() => window.location.reload(), 1000); // Reload to reset UI cleanly
+
+        // 3. 显示成功消息
+        showToast('Logged out successfully! Refreshing page...', 'success');
+
+        // 4. 刷新页面
+        setTimeout(() => {
+            console.log('Refreshing page...');
+            window.location.reload();
+        }, 800);
+
+    } catch (error) {
+        console.error('Logout error:', error);
+        showToast('Logout failed: ' + error.message, 'error');
+        window.logoutInProgress = false;
     }
 }
 
@@ -1156,16 +1221,46 @@ function setupEventListeners() {
     });
 
     // Auth Event Listeners (FIXED)
-    if (loginForm) loginForm.addEventListener('submit', handleLogin);
-    if (registerForm) registerForm.addEventListener('submit', handleRegister);
-
     // Modal Toggles
-    if (loginBtn) loginBtn.addEventListener('click', () => loginModal.classList.add('active'));
-    if (registerBtn && !currentUser) registerBtn.addEventListener('click', () => registerModal.classList.add('active'));
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            if (currentUser) {
+                // 如果是登录状态，跳转到用户页面或其他操作
+                window.location.href = 'my-account.html';
+            } else {
+                loginModal.classList.add('active');
+            }
+        });
+    }
+
+    if (registerBtn) {
+        registerBtn.addEventListener('click', () => {
+            if (currentUser) {
+                logout();
+            } else {
+                registerModal.classList.add('active');
+            }
+        });
+    }
+    // Modal Toggles
+    //if (loginBtn) loginBtn.addEventListener('click', () => loginModal.classList.add('active'));
+    //if (registerBtn && !currentUser) registerBtn.addEventListener('click', () => registerModal.classList.add('active'));
 
     if (closeLoginModal) closeLoginModal.addEventListener('click', () => loginModal.classList.remove('active'));
     if (closeRegisterModal) closeRegisterModal.addEventListener('click', () => registerModal.classList.remove('active'));
 
+    // Auth Event Listeners
+    if (loginForm) {
+        loginForm.removeEventListener('submit', handleLogin);
+        loginForm.addEventListener('submit', handleLogin);
+    }
+
+    if (registerForm) {
+        registerForm.removeEventListener('submit', handleRegister);
+        registerForm.addEventListener('submit', handleRegister);
+    }
+
+// 切换登录/注册模态框
     if (switchToRegister) {
         switchToRegister.addEventListener('click', (e) => {
             e.preventDefault();

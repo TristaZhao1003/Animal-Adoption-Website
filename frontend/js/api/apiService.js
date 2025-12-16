@@ -7,13 +7,21 @@ class ApiService {
     // --- Animal APIs ---
 
     // Get available animals list
-    static async getAvailableAnimals() {
+    static async getAvailableAnimals(params = {}) {
         try {
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            // 添加认证头
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`${API_BASE_URL}/animals/available`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: headers
             });
 
             if (!response.ok) {

@@ -39,6 +39,15 @@ let selectedDonationAmount = 100;
 // 当前志愿者申请职位
 let currentVolunteerRole = '';
 
+
+// 清理认证数据
+function clearAuthData() {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    currentUser = null;
+    authToken = null;
+}
+
 // 从后端获取动物数据（使用ApiService）
 async function fetchAnimals() {
     try {
@@ -502,7 +511,10 @@ function scrollToSection(sectionId, activeLink = null) {
 function setupAuthEvents() {
     // 登录按钮点击事件
     if (loginBtn) {
-        loginBtn.addEventListener('click', () => {
+        // ✅ 移除旧的事件监听器，添加新的
+        loginBtn.replaceWith(loginBtn.cloneNode(true));
+        const newLoginBtn = document.getElementById('loginBtn');
+        newLoginBtn.addEventListener('click', () => {
             if (currentUser) {
                 window.location.href = 'my-account.html';
             } else {
@@ -510,10 +522,13 @@ function setupAuthEvents() {
             }
         });
     }
-    
+
     // 注册/登出按钮点击事件
     if (registerBtn) {
-        registerBtn.addEventListener('click', () => {
+        // ✅ 移除旧的事件监听器，添加新的
+        registerBtn.replaceWith(registerBtn.cloneNode(true));
+        const newRegisterBtn = document.getElementById('registerBtn');
+        newRegisterBtn.addEventListener('click', () => {
             if (currentUser) {
                 logout();
             } else {
@@ -673,25 +688,33 @@ function setupModalCloseEvents() {
 async function handleLogin(email, password) {
     try {
         showButtonLoading(loginForm.querySelector('button[type="submit"]'));
-        
+
         const result = await ApiService.login({ email, password });
-        
-        // 保存认证信息
+
+        // 保存认证信息到 localStorage
+        localStorage.setItem('authToken', result.token);
+        localStorage.setItem('userData', JSON.stringify(result.user));
+
+        // 更新本地状态
         authToken = result.token;
         currentUser = result.user;
-        
+
         // 更新UI
         updateAuthButtons();
+
+        // 显示成功消息
+        showToast('Login successful! Welcome back!', 'success');
+
+        // 关闭登录模态框
         loginModal.classList.remove('active');
-        
+
         // 重置表单
         loginForm.reset();
-        
-        showToast('Login successful! Welcome back!', 'success');
-        
-        // 刷新页面数据（如果需要）
-        await refreshPageData();
-        
+
+        setTimeout(() => {
+            window.location.reload();
+        }, 800);
+
     } catch (error) {
         console.error('Login error:', error);
         showToast(`Login failed: ${error.message}`, 'error');
@@ -718,21 +741,22 @@ async function handleRegister(userData) {
     }
 }
 
-// 处理登出（使用ApiService）
-async function logout() {
+// 处理登出
+function logout() {
     if (confirm('Are you sure you want to logout?')) {
         try {
-            await ApiService.logout();
-            
-            // 清除本地状态
-            authToken = null;
-            currentUser = null;
-            
+            // 清除本地认证数据
+            clearAuthData();
+
             // 更新UI
             updateAuthButtons();
-            
+
             showToast('Logged out successfully!', 'success');
-            
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
+
         } catch (error) {
             console.error('Logout error:', error);
             showToast('Logout failed', 'error');
@@ -976,7 +1000,10 @@ function getToastColor(type) {
 }
 
 // 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', initPage);
+document.addEventListener('DOMContentLoaded', () => {
+    checkAuthStatus();
+    initPage();
+});
 
 // 暴露必要函数到全局作用域
 window.viewAnimalDetails = viewAnimalDetails;
