@@ -1,6 +1,6 @@
 // js/api/apiService.js
 
-const API_BASE_URL = 'http://localhost:8080'; // Ensure this matches your backend port
+const API_BASE_URL = 'https://animal-adoption-website.onrender.com'; // Ensure this matches your backend port
 
 class ApiService {
 
