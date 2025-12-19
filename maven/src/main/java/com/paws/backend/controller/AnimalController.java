@@ -26,7 +26,7 @@ public class AnimalController {
     public List<Animal> getAvailableAnimals() {
         // 返回所有状态为 AVAILABLE 的动物
         // 如果数据库为空，前端代码通常有 fallback 数据，或者你可以写一个初始化数据的接口
-        return animalRepository.findByStatus("AVAILABLE");
+        return animalRepository.findByStatusIn(List.of("AVAILABLE", "RESERVED", "ADOPTED"));
     }
 
     // 获取所有宠物（包括已领养的）

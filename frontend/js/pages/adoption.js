@@ -98,7 +98,7 @@ function updateAuthButtons() {
             loginBtn.innerHTML = `<i class="fas fa-user"></i> ${currentUser.fullName || currentUser.name || 'Account'}`;
             // 移除旧的监听器，添加新的
             loginBtn.onclick = () => {
-                window.location.href = 'my-account.html';
+                alert("Profile page still in progress...☕️");
             };
         }
 
@@ -451,10 +451,16 @@ function renderAnimals() {
     // Admin可以查看所有动物，普通用户只查看可用的
     let animalsToDisplay = filteredAnimals;
 
+    // if (!ApiService.isAdmin()) {
+    //     // 普通用户：只显示可用的动物
+    //     animalsToDisplay = filteredAnimals.filter(animal =>
+    //         animal.status === 'AVAILABLE' || animal.status === 'Available'
+    //     );
+    // }
+
     if (!ApiService.isAdmin()) {
-        // 普通用户：只显示可用的动物
         animalsToDisplay = filteredAnimals.filter(animal =>
-            animal.status === 'AVAILABLE' || animal.status === 'Available'
+            ['AVAILABLE', 'Available', 'RESERVED', 'Reserved', 'ADOPTED', 'Adopted'].includes(animal.status)
         );
     }
 
@@ -674,10 +680,9 @@ function applyFilters() {
         return true;
     });
 
-    // 如果不是admin，额外过滤掉不可用的动物
     if (!ApiService.isAdmin()) {
         filteredAnimals = filteredAnimals.filter(animal =>
-            animal.status === 'AVAILABLE' || animal.status === 'Available'
+            ['AVAILABLE', 'Available', 'RESERVED', 'Reserved', 'ADOPTED', 'Adopted'].includes(animal.status)
         );
     }
 

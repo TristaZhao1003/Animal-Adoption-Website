@@ -516,7 +516,8 @@ function setupAuthEvents() {
         const newLoginBtn = document.getElementById('loginBtn');
         newLoginBtn.addEventListener('click', () => {
             if (currentUser) {
-                window.location.href = 'my-account.html';
+                console.log("Profile page still in progress... ☕️");
+                alert("Profile page not implemented yet");
             } else {
                 loginModal.classList.add('active');
             }
@@ -883,7 +884,7 @@ async function viewAnimalDetails(animalId) {
 
 // 导航到浏览页面
 function navigateToBrowsePage() {
-    window.location.href = 'browse-animals.html';
+    window.location.href = 'adoption.html';
 }
 
 // 刷新页面数据

@@ -11,4 +11,5 @@ import java.util.Optional;
 
 public interface AnimalRepository extends MongoRepository<Animal, String> {
     List<Animal> findByStatus(String status);
+    List<Animal> findByStatusIn(List<String> statuses);
 }
