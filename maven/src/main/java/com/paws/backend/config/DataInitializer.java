@@ -19,7 +19,7 @@ public class DataInitializer {
                                    UserRepository userRepository,
                                    PasswordEncoder passwordEncoder) {
         return args -> {
-            // 1. 初始化动物数据
+            // 1. initialize animal data
             if (animalRepository.count() == 0) {
                 // 1. Buddy
                 Animal a1 = new Animal();
