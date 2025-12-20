@@ -137,7 +137,7 @@ public class DataInitializer {
                 a8.setLocation("Shanghai");
                 a8.setNeutered(true);
                 a8.setStatus("AVAILABLE");
-                a8.setImage("https://images.unsplash.com/photo-1514888286974-6d03bdeacba8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80");
+                a8.setImage("https://www.thesprucepets.com/thmb/Kd_xFuFdE5qaA3wQGIFnqZJo32I=/2119x0/filters:no_upscale():strip_icc()/BritishShorthair-5445e571780143dd80ec7d858d9ce1f6.jpg");
                 a8.setStory("Milo was surrendered by a family who could no longer care for him. He's a gentle, laid-back cat who enjoys lounging in sunny spots.");
                 a8.setPersonality(List.of("gentle", "calm", "independent", "affectionate"));
 
@@ -182,7 +182,7 @@ public class DataInitializer {
                 a11.setLocation("Shenzhen");
                 a11.setNeutered(true);
                 a11.setStatus("AVAILABLE");
-                a11.setImage("https://images.unsplash.com/photo-1573866926487-a1865558a9cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80");
+                a11.setImage("https://image.petmd.com/files/inline-images/bengal-cat.jpeg?VersionId=X0xkDftr_klFvUhQpLarkxvJBbnUAd01");
                 a11.setStory("Bella was rescued from a backyard breeder. She has beautiful markings and loves climbing and exploring.");
                 a11.setPersonality(List.of("active", "playful", "vocal", "curious"));
 
@@ -227,7 +227,7 @@ public class DataInitializer {
                 a14.setLocation("Beijing");
                 a14.setNeutered(true);
                 a14.setStatus("AVAILABLE");
-                a14.setImage("https://images.unsplash.com/photo-1593482892290-5d188b9e56dc?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80");
+                a14.setImage("https://closerpets.co.uk/cdn/shop/articles/Depositphotos_252145158_L_48fe0765-cc60-403c-be22-d2b2e68060ca.jpg?v=1758717961");
                 a14.setStory("Simba was found as a stray with matted fur. After grooming and care, he's revealed as a majestic Maine Coon.");
                 a14.setPersonality(List.of("majestic", "gentle", "friendly", "playful"));
 
