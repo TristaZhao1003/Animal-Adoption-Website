@@ -18,10 +18,15 @@ public class User {
     private String phone;
     private String role = "USER"; // USER, ADMIN
 
+
+
+
     // 志愿者相关字段
     private boolean isVolunteer = false;
     private String volunteerRole;
     private String experience;
     private String availability;
     private String applicationDate;
+
+
 }

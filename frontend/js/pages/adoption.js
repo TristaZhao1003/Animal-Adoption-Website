@@ -110,11 +110,11 @@ function updateAuthButtons() {
     } else {
         // 未登录状态
         if(loginBtn) {
-            loginBtn.innerHTML = 'Log in';
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
             loginBtn.onclick = () => loginModal.classList.add('active');
         }
         if(registerBtn) {
-            registerBtn.innerHTML = 'Sign up';
+            registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Register';
             registerBtn.onclick = () => registerModal.classList.add('active');
         }
     }
